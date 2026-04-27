@@ -1,0 +1,6 @@
+
+{
+  "name": "SecureCloud Cryptographic Storage",
+  "description": "A high-security cloud storage simulator featuring client-side AES-256 and RSA encryption, including an AI security advisor powered by Gemini.",
+  "requestFramePermissions": []
+}
