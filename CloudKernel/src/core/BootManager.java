@@ -1,23 +1,30 @@
 package core;
 
-import utils.Logger;
+import utils.GUILogger;
 import java.util.concurrent.CountDownLatch;
 
-// Handles system boot readiness using CountDownLatch.
+/**
+ * Handles system boot readiness using CountDownLatch.
+ * Initializes Disk and RAM subsystems in parallel.
+ */
 public class BootManager {
 
-    private final CountDownLatch bootLatch = new CountDownLatch(2);
+    private final CountDownLatch bootLatch = new CountDownLatch(4); // Enhanced: 4 resources to boot
+    private final GUILogger logger;
+
+    public BootManager(GUILogger logger) {
+        this.logger = logger;
+    }
 
     public void initDisk() {
         new Thread(() -> {
             try {
-                Logger.log("BOOT", "Disk subsystem starting...", Logger.YELLOW);
+                logger.log("SYSTEM", "Disk subsystem starting...", "BOOT");
                 Thread.sleep(1500);
-                Logger.log("BOOT", "Disk subsystem initialized. [OK]", Logger.GREEN);
+                logger.log("SYSTEM", "Disk subsystem initialized. [OK]", "BOOT");
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } finally {
-                // Count down in finally to avoid deadlock on errors.
                 bootLatch.countDown();
             }
         }, "Disk-Init-Thread").start();
@@ -26,9 +33,9 @@ public class BootManager {
     public void initRAM() {
         new Thread(() -> {
             try {
-                Logger.log("BOOT", "RAM subsystem starting...", Logger.YELLOW);
+                logger.log("SYSTEM", "RAM subsystem starting...", "BOOT");
                 Thread.sleep(1000);
-                Logger.log("BOOT", "RAM subsystem initialized. [OK]", Logger.GREEN);
+                logger.log("SYSTEM", "RAM subsystem initialized. [OK]", "BOOT");
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } finally {
@@ -37,9 +44,41 @@ public class BootManager {
         }, "RAM-Init-Thread").start();
     }
 
+    public void initNetworkStack() {
+        new Thread(() -> {
+            try {
+                logger.log("SYSTEM", "Network Stack initializing...", "BOOT");
+                Thread.sleep(1200);
+                logger.log("SYSTEM", "Network Stack initialized. [OK]", "BOOT");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                bootLatch.countDown();
+            }
+        }, "Network-Init-Thread").start();
+    }
+
+    public void initCPUScheduler() {
+        new Thread(() -> {
+            try {
+                logger.log("SYSTEM", "CPU Scheduler initializing...", "BOOT");
+                Thread.sleep(800);
+                logger.log("SYSTEM", "CPU Scheduler initialized. [OK]", "BOOT");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                bootLatch.countDown();
+            }
+        }, "CPU-Init-Thread").start();
+    }
+
     public void awaitBootCompletion() throws InterruptedException {
-        Logger.log("BOOT", "Hypervisor waiting for subsystems...", Logger.CYAN);
+        logger.boot("Hypervisor waiting for all subsystems...");
         bootLatch.await();
-        Logger.log("BOOT", "All subsystems ready. CloudKernel is ONLINE. [OK]", Logger.GREEN);
+        logger.boot("✓ All subsystems ready. CloudKernel is ONLINE.");
+    }
+
+    public CountDownLatch getBootLatch() {
+        return bootLatch;
     }
 }

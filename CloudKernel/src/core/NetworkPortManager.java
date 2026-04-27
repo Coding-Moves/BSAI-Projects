@@ -1,31 +1,43 @@
 package core;
 
-import utils.Logger;
+import utils.GUILogger;
 import java.util.concurrent.Semaphore;
 
-// Manages limited network ports using a fair semaphore.
+/**
+ * Manages limited network ports using a fair semaphore.
+ * Ensures only a limited number of VMs can access the network simultaneously.
+ */
 public class NetworkPortManager {
 
     private static final int TOTAL_PORTS = 2;
     private final Semaphore networkPorts = new Semaphore(TOTAL_PORTS, true);
+    private final GUILogger logger;
+
+    public NetworkPortManager(GUILogger logger) {
+        this.logger = logger;
+    }
 
     public void acquirePort(String vmName) throws InterruptedException {
-        Logger.log(vmName,
+        logger.log(vmName,
                 "Requesting Network Port... (available: " + networkPorts.availablePermits() + "/" + TOTAL_PORTS + ")",
-                Logger.YELLOW);
+                "NETWORK");
 
         networkPorts.acquire();
         int inUse = TOTAL_PORTS - networkPorts.availablePermits();
 
-        Logger.log(vmName,
+        logger.log(vmName,
                 "Network Port GRANTED. (in use: " + inUse + "/" + TOTAL_PORTS + ") Transmitting data...",
-                Logger.GREEN);
+                "NETWORK");
     }
 
     public void releasePort(String vmName) {
         networkPorts.release();
-        Logger.log(vmName,
+        logger.log(vmName,
                 "Network Port RELEASED. (available: " + networkPorts.availablePermits() + "/" + TOTAL_PORTS + ")",
-                Logger.CYAN);
+                "NETWORK");
+    }
+
+    public Semaphore getNetworkPorts() {
+        return networkPorts;
     }
 }
