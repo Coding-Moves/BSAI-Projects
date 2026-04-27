@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ResQTemp</title>
+<style>
+body{margin:0;font-family:sans-serif;background:#0f2027;color:white;}
+.container{max-width:420px;margin:auto;padding:20px}
+.card{background:rgba(255,255,255,0.12);border-radius:18px;padding:25px;text-align:center;position:relative;box-shadow:0 4px 6px rgba(0,0,0,0.1);}
+.temp{font-size:60px;font-weight:bold;margin-bottom:10px;}
+.status{margin-top:12px;padding:10px;border-radius:10px;font-weight:600;}
+.normal{background:#2ecc71;color:#000;}
+.alert{background:#e74c3c}
+.calling{background:#3498db}
+.btn-group{margin-top:20px}
+button{width:100%;padding:12px;border-radius:10px;border:0;background:#f1c40f;font-size:15px;margin-top:10px;cursor:pointer;transition:background 0.2s;}
+button.reset-btn{background:#e74c3c;color:white;}
+button.cancel{background:#e74c3c;color:white;}
+.indicator{position:absolute;top:15px;right:15px;width:12px;height:12px;border-radius:50%;}
+.indicator.connected{background:#2ecc71;}
+.indicator.disconnected{background:#e74c3c;}
+.mode-info{font-size:14px;color:rgba(255,255,255,0.7);margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="container">
+<h3>ResQTemp System</h3>
+<div class="card">
+  <div class="indicator disconnected" id="conn"></div>
+  <div class="temp" id="temp">--</div>
+  <div class="status" id="status">Waiting...</div>
+  <div class="mode-info" id="modeInfo"></div>
+  <div class="mode-info" id="countdownInfo"></div>
+  <div class="btn-group">
+    <button id="demoBtn" onclick="toggleDemo()">Toggle Demo Mode</button>
+    <button onclick="window.location.reload()">Refresh</button>
+    <button class="reset-btn" onclick="resetEsp()">Reset ESP</button>
+    <button id="cancelBtn" class="cancel" onclick="cancelCall()" style="display:none;">Cancel Call</button>
+  </div>
+  <div style="font-size:13px;margin-top:15px">Location: NFC-IET Multan Lab 114 AI Depart</div>
+</div>
+</div>
+<script>
+let lastUpdate=0;
+function updateUI(d){
+  lastUpdate=Date.now();
+  document.getElementById("conn").className="indicator connected";
+  document.getElementById("temp").innerHTML=d.temp+" °C";
+  let st=document.getElementById("status");
+  st.innerHTML=d.state;
+  st.className="status "+d.state.toLowerCase();
+  let demoBtn=document.getElementById("demoBtn");
+  let modeInfo=document.getElementById("modeInfo");
+  let countdownInfo=document.getElementById("countdownInfo");
+  let cancelBtn=document.getElementById("cancelBtn");
+  if(d.demo==="true"){
+    demoBtn.innerText="Disable Demo Mode";
+    modeInfo.innerHTML="Demo Mode Active (Simulation to "+d.limit+" °C)";
+  }else{
+    demoBtn.innerText="Enable Demo Mode";
+    modeInfo.innerHTML="Real Mode Active (Threshold: "+d.limit+" °C)";
+  }
+  if(d.state==="NORMAL") st.innerHTML="Normal";
+  if(d.state==="ALARM") st.innerHTML="Overheating Alert";
+  if(d.state==="CALLING") st.innerHTML="Emergency Alert Sent";
+  if(d.countdown>0 && d.state==="ALARM"){
+    countdownInfo.innerHTML="Alert in: "+d.countdown+" sec";
+    cancelBtn.style.display="block";
+  } else {
+    countdownInfo.innerHTML="";
+    cancelBtn.style.display="none";
+  }
+}
+function fetchData(){
+  fetch('/data').then(r=>r.json()).then(updateUI).catch(()=>document.getElementById("conn").className="indicator disconnected");
+}
+function toggleDemo(){ fetch('/demo').then(()=>fetchData()); }
+function resetEsp(){ fetch('/reset').then(()=>setTimeout(()=>{window.location.reload();},2500)); }
+function cancelCall(){ fetch('/cancelCall').then(()=>fetchData()); }
+fetchData();
+setInterval(fetchData,1500);
+setInterval(()=>{ if(Date.now()-lastUpdate>3000) document.getElementById("conn").className="indicator disconnected"; },1000);
+</script>
+</body>
+</html>

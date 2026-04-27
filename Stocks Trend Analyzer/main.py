@@ -1,3 +1,4 @@
+import customtkinter as ctk
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import csv
@@ -15,50 +16,77 @@ class StockAnalyzerApp:
     def __init__(self, master):
         self.master = master
         master.title("Stocks Trend Analyzer")
-        master.geometry("950x700")
+        master.geometry("1100x720")
+        ctk.set_appearance_mode("dark")
+        ctk.set_default_color_theme("blue")
 
         # Variables
         self.prices = ArrayList()
         self.dates = ArrayList()
-        self.window_size = tk.IntVar(value=5)  # Default moving average window
+        self.window_size = tk.IntVar(value=5)
 
-        # Widgets
-        self.label = tk.Label(master, text="Stocks Trend Analyzer", font=("Arial", 18))
-        self.label.pack(pady=10)
+        # ------------------ LAYOUT -------------------
+        self.main_frame = ctk.CTkFrame(master)
+        self.main_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        self.load_button = tk.Button(master, text="Load CSV", command=self.load_csv)
-        self.load_button.pack(pady=5)
+        # Left Control Panel
+        self.left_panel = ctk.CTkFrame(self.main_frame, width=260)
+        self.left_panel.pack(side="left", fill="y", padx=10, pady=10)
 
-        frame = tk.Frame(master)
-        frame.pack(pady=5)
-        tk.Label(frame, text="Moving Average Window:").pack(side=tk.LEFT)
-        self.window_entry = tk.Entry(frame, textvariable=self.window_size, width=5)
-        self.window_entry.pack(side=tk.LEFT)
+        # Right Chart Panel
+        self.right_panel = ctk.CTkFrame(self.main_frame)
+        self.right_panel.pack(side="right", fill="both", expand=True, padx=10, pady=10)
 
-        self.analyze_button = tk.Button(master, text="Analyze Trends", command=self.analyze)
-        self.analyze_button.pack(pady=5)
+        # ------------------ LEFT PANEL UI -------------------
+        ctk.CTkLabel(self.left_panel, text="Stocks Trend Analyzer", font=("Arial", 22)).pack(pady=15)
 
-        self.save_button = tk.Button(master, text="Save Chart", command=self.save_chart)
-        self.save_button.pack(pady=5)
+        ctk.CTkButton(self.left_panel, text="Load CSV", command=self.load_csv, width=220).pack(pady=10)
 
-        self.figure = plt.Figure(figsize=(8,5), dpi=100)
+        ctk.CTkLabel(self.left_panel, text="Moving Average Window:", anchor="w").pack(pady=5)
+        self.window_entry = ctk.CTkEntry(self.left_panel, textvariable=self.window_size, width=80)
+        self.window_entry.pack(pady=5)
+
+        ctk.CTkButton(self.left_panel, text="Analyze Trends", command=self.analyze, width=220).pack(pady=15)
+
+        ctk.CTkButton(self.left_panel, text="Save Chart", command=self.save_chart, width=220).pack(pady=15)
+
+        # Results Panel (Buy/Sell Info)
+        ctk.CTkLabel(self.left_panel, text="Analysis Summary", font=("Arial", 18)).pack(pady=10)
+
+        self.buy_label = ctk.CTkLabel(self.left_panel, text="Buy Day: -", font=("Arial", 14))
+        self.buy_label.pack(pady=3)
+
+        self.sell_label = ctk.CTkLabel(self.left_panel, text="Sell Day: -", font=("Arial", 14))
+        self.sell_label.pack(pady=3)
+
+        self.profit_label = ctk.CTkLabel(self.left_panel, text="Max Profit: -", font=("Arial", 14))
+        self.profit_label.pack(pady=3)
+
+        # ------------------ CHART AREA -------------------
+        self.figure = plt.Figure(figsize=(7, 5), dpi=100)
         self.ax = self.figure.add_subplot(111)
-        self.canvas = FigureCanvasTkAgg(self.figure, master)
-        self.canvas.get_tk_widget().pack(pady=20)
+
+        self.canvas = FigureCanvasTkAgg(self.figure, self.right_panel)
+        self.canvas.get_tk_widget().pack(fill="both", expand=True)
+
+    # ------------------ FUNCTIONS -------------------
 
     def load_csv(self):
         file_path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])
         if not file_path:
             return
         try:
-            with open(file_path, 'r') as csvfile:
+            with open(file_path, "r") as csvfile:
                 reader = csv.DictReader(csvfile)
                 self.prices.clear()
                 self.dates.clear()
+
                 for row in reader:
-                    self.dates.append(row['Date'])
-                    self.prices.append(float(row['Close']))
+                    self.dates.append(row["Date"])
+                    self.prices.append(float(row["Close"]))
+
             messagebox.showinfo("Success", f"Loaded {self.prices.size()} records.")
+
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load CSV: {e}")
 
@@ -72,7 +100,7 @@ class StockAnalyzerApp:
             if window < 1:
                 raise ValueError
         except ValueError:
-            messagebox.showwarning("Warning", "Window size must be a positive integer.")
+            messagebox.showwarning("Warning", "Window size must be positive.")
             return
 
         # Trend detection
@@ -81,54 +109,58 @@ class StockAnalyzerApp:
 
         # Moving Average
         ma_module = MovingAverage(window)
-        moving_avg = ma_module.calculate([self.prices.get(i) for i in range(self.prices.size())])
+        moving_avg = ma_module.calculate(
+            [self.prices.get(i) for i in range(self.prices.size())]
+        )
 
         # Max Profit
-        max_profit_module = MaxProfit([self.prices.get(i) for i in range(self.prices.size())])
+        price_list = [self.prices.get(i) for i in range(self.prices.size())]
+        max_profit_module = MaxProfit(price_list)
         buy_day, sell_day, profit = max_profit_module.best_interval()
 
-        # Local High/Low
-        lh_module = LocalHighLow([self.prices.get(i) for i in range(self.prices.size())])
+        # Local Extremes
+        lh_module = LocalHighLow(price_list)
         extremes = lh_module.find_local_extremes()
 
-        # Plotting
+        # Plot
         self.ax.clear()
-        x_vals = [i for i in range(self.prices.size())]
-        y_vals = [self.prices.get(i) for i in range(self.prices.size())]
+        x_vals = list(range(self.prices.size()))
+        y_vals = price_list
 
-        self.ax.plot(x_vals, y_vals, label="Close Price", color="blue")
-        self.ax.plot(x_vals, moving_avg, label=f"{window}-Day MA", color="orange")
+        self.ax.plot(x_vals, y_vals, label="Close Price")
+        self.ax.plot(x_vals, moving_avg, label=f"{window}-Day MA")
 
-        # Mark buy/sell
-        self.ax.scatter(buy_day, y_vals[buy_day], marker="^", color="green", s=100, label="Buy")
-        self.ax.scatter(sell_day, y_vals[sell_day], marker="v", color="red", s=100, label="Sell")
+        # Buy/Sell Markers
+        self.ax.scatter(buy_day, y_vals[buy_day], color="green", marker="^", s=100)
+        self.ax.scatter(sell_day, y_vals[sell_day], color="red", marker="v", s=100)
 
-        # Mark local highs/lows
+        # High / Low Points
         for idx, kind, price in extremes:
-            color = "purple" if kind == "High" else "brown"
-            self.ax.scatter(idx, price, color=color, marker="o", s=50)
+            self.ax.scatter(idx, price, color="purple" if kind == "High" else "brown")
 
         self.ax.set_title("Stock Trend Analysis")
-        self.ax.set_xlabel("Day Index")
-        self.ax.set_ylabel("Price")
         self.ax.legend()
         self.canvas.draw()
 
-        messagebox.showinfo("Analysis Complete", f"Max Profit: {profit:.2f} (Buy day {buy_day}, Sell day {sell_day})")
+        # Update Labels
+        self.buy_label.configure(text=f"Buy Day: {buy_day}")
+        self.sell_label.configure(text=f"Sell Day: {sell_day}")
+        self.profit_label.configure(text=f"Max Profit: {profit:.2f}")
 
-    def save_chart(self):  
-
+    def save_chart(self):
         project_dir = os.path.abspath(os.path.dirname(__file__))
-
         charts_dir = os.path.join(project_dir, "charts")
         os.makedirs(charts_dir, exist_ok=True)
 
-        # Save chart
-        save_path = os.path.join(charts_dir, "generated_charts.png")
+        save_path = os.path.join(charts_dir, "generated_chart.png")
         self.figure.savefig(save_path)
-        messagebox.showinfo("Saved", f"Chart saved to {save_path}")
 
+        messagebox.showinfo("Saved", f"Chart saved to:\n{save_path}")
+
+
+# ------------------ MAIN -------------------
 if __name__ == "__main__":
-    root = tk.Tk()
+    ctk.set_appearance_mode("dark")
+    root = ctk.CTk()
     app = StockAnalyzerApp(root)
     root.mainloop()

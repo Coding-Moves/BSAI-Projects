@@ -1,0 +1,10 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Generated files
+Stocks Trend Analyzer/charts/generated_charts.png
+
+# OS files
+.DS_Store
+Thumbs.db
