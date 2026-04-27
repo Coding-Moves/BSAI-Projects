@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>Dashboard</h3>
+  <div>
+    <button id="logout" class="btn btn-outline-secondary">Logout</button>
+  </div>
+</div>
+<div class="card mb-3">
+  <div class="card-body">
+    <h5>Upload</h5>
+    <form id="uploadForm">
+      <div class="mb-3"><input type="file" id="fileInput" class="form-control" /></div>
+      <button class="btn btn-primary">Upload</button>
+    </form>
+  </div>
+</div>
+<div class="card">
+  <div class="card-body">
+    <h5>Files</h5>
+    <table class="table" id="filesTable"><thead><tr><th>Name</th><th>Size</th><th>Actions</th></tr></thead><tbody></tbody></table>
+  </div>
+</div>
+<script>
+const token = localStorage.getItem('sfs_token')
+if(!token){ window.location='/login.html' }
+axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+
+async function loadFiles(){
+  const resp = await axios.get('/api/files/')
+  const tbody = document.querySelector('#filesTable tbody')
+  tbody.innerHTML=''
+  resp.data.forEach(f=>{
+    const row = document.createElement('tr')
+    row.innerHTML = `<td>${f.original_filename}</td><td>${f.size}</td><td>
+      <a class="btn btn-sm btn-success" href="/api/files/${f.id}/download/">Download</a>
+      <button class="btn btn-sm btn-danger ms-2" onclick="del(${f.id})">Delete</button>
+    </td>`
+    tbody.appendChild(row)
+  })
+}
+async function del(id){
+  await axios.delete(`/api/files/${id}/`)
+  await loadFiles()
+}
+
+const upForm = document.getElementById('uploadForm')
+upForm.addEventListener('submit', async (e)=>{
+  e.preventDefault()
+  const f = document.getElementById('fileInput').files[0]
+  if(!f) return alert('Choose file')
+  const fd = new FormData()
+  fd.append('file', f)
+  await axios.post('/api/files/', fd)
+  await loadFiles()
+})
+
+document.getElementById('logout').addEventListener('click', ()=>{ localStorage.removeItem('sfs_token'); window.location='/login.html' })
+
+loadFiles()
+</script>
+{% endblock %}

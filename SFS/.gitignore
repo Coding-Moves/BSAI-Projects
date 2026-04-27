@@ -1,3 +1,23 @@
+<<<<<<< HEAD
+__pycache__/
+node_modules/
+.env
+firebase_key.json
+*.pyc
+.DS_Store
+
+# Environment & local files
+.env.local
+/backend/sfs_backend/.env
+/backups/
+*.sqlite3
+db.sqlite3
+staticfiles/
+venv/
+.venv/
+.vscode/
+*.log
+=======
 # Logs
 logs
 *.log
@@ -22,3 +42,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+>>>>>>> bcc90d3f06f7aa01dccbcb36cbf03bbf0ad74362
