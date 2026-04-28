@@ -1,12 +1,14 @@
 package utils;
 
 import entities.VMStats;
-import java.util.*;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Collects and manages system-wide statistics.
+ * Collects system-wide and per-VM simulation statistics.
  */
 public class StatsCollector {
     private final Map<String, VMStats> vmStats = new LinkedHashMap<>();
@@ -16,22 +18,36 @@ public class StatsCollector {
     private final AtomicLong startTime = new AtomicLong(0);
     private final AtomicInteger totalTimeouts = new AtomicInteger(0);
 
+    /** Creates a new collector and captures simulation start time. */
     public StatsCollector() {
         startTime.set(System.currentTimeMillis());
     }
 
+    /**
+     * Returns existing stats for a VM or creates a new entry.
+     *
+     * @param vmName VM name
+     * @return mutable VM stats object
+     */
     public VMStats getOrCreateVMStats(String vmName) {
         return vmStats.computeIfAbsent(vmName, k -> new VMStats(vmName));
     }
 
+    /** Records one completed cycle event. */
     public void recordCycleCompletion() {
         totalCycles.incrementAndGet();
     }
 
+    /** Records one resource contention event. */
     public void recordContention() {
         totalContentions.incrementAndGet();
     }
 
+    /**
+     * Updates peak concurrency if a higher value is observed.
+     *
+     * @param concurrency current observed concurrency
+     */
     public void recordPeakConcurrency(int concurrency) {
         int current = peakConcurrency.get();
         while (concurrency > current) {
@@ -40,10 +56,12 @@ public class StatsCollector {
         }
     }
 
+    /** Records one timeout event. */
     public void recordTimeout() {
         totalTimeouts.incrementAndGet();
     }
 
+    /** Prints a human-readable summary to console output. */
     public void printSummary() {
         long elapsedMs = System.currentTimeMillis() - startTime.get();
         long hours = elapsedMs / 3600000;
@@ -89,26 +107,32 @@ public class StatsCollector {
                 GUILogger.BOLD + "═══════════════════════════════════════════════════════════" + GUILogger.RESET);
     }
 
+    /** @return total completed cycles */
     public int getTotalCycles() {
         return totalCycles.get();
     }
 
+    /** @return total contention count */
     public int getTotalContentions() {
         return totalContentions.get();
     }
 
+    /** @return highest concurrent VM count observed */
     public int getPeakConcurrency() {
         return peakConcurrency.get();
     }
 
+    /** @return total timeout count */
     public int getTotalTimeouts() {
         return totalTimeouts.get();
     }
 
+    /** @return uptime in milliseconds */
     public long getUptimeMs() {
         return System.currentTimeMillis() - startTime.get();
     }
 
+    /** @return snapshot copy of per-VM stats map */
     public Map<String, VMStats> getAllVMStats() {
         return new LinkedHashMap<>(vmStats);
     }

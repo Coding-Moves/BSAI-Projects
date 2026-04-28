@@ -1,8 +1,7 @@
 package entities;
 
 /**
- * VM Priority levels for semaphore permit acquisition.
- * Higher priority VMs get preference when resources are limited.
+ * Priority levels assigned to virtual machines.
  */
 public enum VMPriority {
     LOW(1, "LOW", "\u001B[36m"), // Cyan
@@ -19,18 +18,32 @@ public enum VMPriority {
         this.color = color;
     }
 
+    /**
+     * @return numeric priority value
+     */
     public int getValue() {
         return value;
     }
 
+    /**
+     * @return display label
+     */
     public String getLabel() {
         return label;
     }
 
+    /**
+     * @return ANSI color code for console output
+     */
     public String getColor() {
         return color;
     }
 
+    /**
+     * Returns a random priority.
+     *
+     * @return randomly selected priority
+     */
     public static VMPriority getRandomPriority() {
         int rand = (int) (Math.random() * 3);
         return values()[rand];

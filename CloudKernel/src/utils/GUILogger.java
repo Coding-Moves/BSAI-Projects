@@ -2,16 +2,15 @@ package utils;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Enhanced logger that outputs to both console and GUI.
- * Supports colored terminal output and structured logging.
+ * Logger that writes to terminal output and GUI listeners simultaneously.
  */
 public class GUILogger {
 
-    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss.S");
 
     // ANSI Color codes
     public static final String RESET = "\u001B[0m";
@@ -30,35 +29,54 @@ public class GUILogger {
     public static final int QUIET = 2;
 
     private static int logLevel = NORMAL;
-    private static List<LogListener> listeners = new CopyOnWriteArrayList<>();
+    private static final List<LogListener> listeners = new CopyOnWriteArrayList<>();
 
+    /** Creates a logger instance. */
     public GUILogger() {
     }
 
+    /**
+     * Sets logger verbosity.
+     *
+     * @param level one of VERBOSE, NORMAL, QUIET
+     */
     public static void setLogLevel(int level) {
         logLevel = level;
     }
 
+    /**
+     * Registers a GUI log listener.
+     *
+     * @param listener listener to register
+     */
     public static void addListener(LogListener listener) {
         listeners.add(listener);
     }
 
+    /**
+     * Removes a GUI log listener.
+     *
+     * @param listener listener to remove
+     */
     public static void removeListener(LogListener listener) {
         listeners.remove(listener);
     }
 
     /**
-     * Log a message with component tag, VM name, and category.
-     * Format: [HH:MM:SS] [COMPONENT] VM-X → message
+     * Logs a categorized VM message.
+     *
+     * @param vmName   VM name or source actor
+     * @param message  event message
+     * @param category message category
      */
     public static void log(String vmName, String message, String category) {
-        if (logLevel > VERBOSE)
+        if (logLevel == QUIET)
             return;
 
         String timestamp = LocalTime.now().format(TIME_FORMAT);
         String color = getCategoryColor(category);
         String logLine = String.format(
-                "%s[%s] [%-8s] %s → %s%s",
+            "%s[%s] [%-8s] %s -> %s%s",
                 color, timestamp, category, vmName, message, RESET);
 
         // Print to console
@@ -69,10 +87,12 @@ public class GUILogger {
     }
 
     /**
-     * Log a boot event.
+     * Logs a system boot event.
+     *
+     * @param message event message
      */
     public static void boot(String message) {
-        if (logLevel > VERBOSE)
+        if (logLevel == QUIET)
             return;
 
         String timestamp = LocalTime.now().format(TIME_FORMAT);
@@ -85,10 +105,12 @@ public class GUILogger {
     }
 
     /**
-     * Log a cycle separator.
+     * Logs a cycle separator block.
+     *
+     * @param cycleNum cycle number
      */
     public static void cycleSeparator(int cycleNum) {
-        if (logLevel > VERBOSE)
+        if (logLevel == QUIET)
             return;
 
         System.out.println(BOLD + "═══════════════════════════════════════════════════════════" + RESET);
@@ -97,18 +119,23 @@ public class GUILogger {
     }
 
     /**
-     * Log cycle completion.
+     * Logs cycle completion.
+     *
+     * @param cycleNum cycle number
      */
     public static void cycleComplete(int cycleNum) {
-        if (logLevel > VERBOSE)
+        if (logLevel == QUIET)
             return;
 
-        System.out.println(BOLD + CYAN + "  ✓ CYCLE #" + cycleNum + " COMPLETE" + RESET);
+        System.out.println(BOLD + CYAN + "  CYCLE #" + cycleNum + " COMPLETE" + RESET);
         System.out.println(BOLD + "═══════════════════════════════════════════════════════════" + RESET);
     }
 
     /**
-     * Get color for log category.
+     * Returns ANSI color based on message category.
+     *
+     * @param category event category
+     * @return ANSI color code
      */
     private static String getCategoryColor(String category) {
         switch (category.toUpperCase()) {
@@ -130,6 +157,11 @@ public class GUILogger {
         }
     }
 
+    /**
+     * Emits a log entry to all listeners.
+     *
+     * @param entry formatted log entry
+     */
     private static void notifyListeners(LogEntry entry) {
         for (LogListener listener : listeners) {
             listener.onLogEntry(entry);
@@ -137,7 +169,7 @@ public class GUILogger {
     }
 
     /**
-     * Represents a log entry for GUI consumption.
+     * Immutable GUI log entry payload.
      */
     public static class LogEntry {
         public final String timestamp;
@@ -146,6 +178,15 @@ public class GUILogger {
         public final String message;
         public final String color;
 
+        /**
+         * Creates an immutable log entry payload.
+         *
+         * @param timestamp event timestamp
+         * @param category  category tag
+         * @param vmName    source VM or component
+         * @param message   message body
+         * @param color     ANSI color used for console output
+         */
         public LogEntry(String timestamp, String category, String vmName, String message, String color) {
             this.timestamp = timestamp;
             this.category = category;
@@ -154,27 +195,41 @@ public class GUILogger {
             this.color = color;
         }
 
+        /**
+         * @return formatted display text
+         */
         @Override
         public String toString() {
-            return String.format("[%s] [%s] %s → %s", timestamp, category, vmName, message);
+            return String.format("[%s] [%s] %s -> %s", timestamp, category, vmName, message);
         }
     }
 
     /**
-     * Interface for GUI to listen to log events.
+     * Listener contract for GUI log streams.
      */
     public interface LogListener {
+        /**
+         * Receives one emitted log entry.
+         *
+         * @param entry log entry
+         */
         void onLogEntry(LogEntry entry);
     }
 
+    /** Writes a visual separator to terminal output. */
     public static void separator() {
-        if (logLevel > VERBOSE)
+        if (logLevel == QUIET)
             return;
         System.out.println(BOLD + "─".repeat(65) + RESET);
     }
 
+    /**
+     * Writes a section heading to terminal output.
+     *
+     * @param title heading text
+     */
     public static void section(String title) {
-        if (logLevel > VERBOSE)
+        if (logLevel == QUIET)
             return;
         System.out.println();
         separator();

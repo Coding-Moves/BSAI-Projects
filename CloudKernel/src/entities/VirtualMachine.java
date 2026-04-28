@@ -1,14 +1,13 @@
 package entities;
 
 import core.ClockSynchronizer;
-import entities.ResourceManager;
 import utils.GUILogger;
 import utils.StatsCollector;
+
 import java.util.concurrent.BrokenBarrierException;
 
 /**
- * Represents one Virtual Machine in the simulation.
- * Each VM transitions through defined lifecycle states and manages resources.
+ * Represents a virtual machine worker in the simulation.
  */
 public class VirtualMachine implements Runnable {
 
@@ -25,6 +24,20 @@ public class VirtualMachine implements Runnable {
 
     private VMState currentState;
 
+    /**
+     * Creates a virtual machine runnable.
+     *
+     * @param name            VM name
+     * @param vmId            VM numeric identifier
+     * @param cycles          number of cycles to execute
+     * @param clock           cycle synchronizer
+     * @param resourceManager shared resource manager
+     * @param workDuration    simulated workload duration in milliseconds
+     * @param logger          logger for runtime events
+     * @param priority        assigned VM priority
+     * @param stats           per-VM statistics collector
+     * @param statsCollector  global statistics collector
+     */
     public VirtualMachine(String name, int vmId, int cycles, ClockSynchronizer clock,
             ResourceManager resourceManager, int workDuration, GUILogger logger,
             VMPriority priority, VMStats stats, StatsCollector statsCollector) {
@@ -41,6 +54,9 @@ public class VirtualMachine implements Runnable {
         this.currentState = VMState.BOOTING;
     }
 
+    /**
+     * Executes the VM lifecycle across all configured cycles.
+     */
     @Override
     public void run() {
         try {
@@ -63,9 +79,11 @@ public class VirtualMachine implements Runnable {
                     Thread.sleep(300);
                     resourceManager.releaseCPU(name);
                     setState(VMState.RELEASING);
+                    stats.recordCPUUse();
                     stats.recordWaitTime(System.currentTimeMillis() - cpuWaitStart);
                 } else {
                     stats.recordTimeout();
+                    statsCollector.recordTimeout();
                 }
 
                 // Request and use Memory
@@ -76,9 +94,11 @@ public class VirtualMachine implements Runnable {
                     Thread.sleep(250);
                     resourceManager.releaseMemory(name);
                     setState(VMState.RELEASING);
+                    stats.recordMemoryUse();
                     stats.recordWaitTime(System.currentTimeMillis() - memWaitStart);
                 } else {
                     stats.recordTimeout();
+                    statsCollector.recordTimeout();
                 }
 
                 // Request and use Network
@@ -89,9 +109,11 @@ public class VirtualMachine implements Runnable {
                     Thread.sleep(500);
                     resourceManager.releaseNetwork(name);
                     setState(VMState.RELEASING);
+                    stats.recordNetworkUse();
                     stats.recordWaitTime(System.currentTimeMillis() - netWaitStart);
                 } else {
                     stats.recordTimeout();
+                    statsCollector.recordTimeout();
                 }
 
                 // Barrier synchronization
@@ -114,27 +136,46 @@ public class VirtualMachine implements Runnable {
         }
     }
 
+    /**
+     * Updates the current VM state.
+     *
+     * @param newState next state
+     */
     private void setState(VMState newState) {
         this.currentState = newState;
-        stats.recordTaskCompleted();
     }
 
+    /**
+     * @return current VM state
+     */
     public VMState getCurrentState() {
         return currentState;
     }
 
+    /**
+     * @return assigned VM priority
+     */
     public VMPriority getPriority() {
         return priority;
     }
 
+    /**
+     * @return per-VM statistics object
+     */
     public VMStats getStats() {
         return stats;
     }
 
+    /**
+     * @return VM display name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * @return numeric VM identifier
+     */
     public int getVMId() {
         return vmId;
     }

@@ -1,376 +1,77 @@
-# CloudKernel GUI Architecture & Class Diagram
+# CloudKernel Architecture
 
-## 🏗️ Project Structure
+## Purpose
 
-```
-CloudKernel/
-├── src/
-│   ├── Main.java                    ← Entry point (launches GUI)
-│   ├── core/
-│   │   ├── BootManager.java         ← CountDownLatch boot logic
-│   │   ├── ClockSynchronizer.java   ← CyclicBarrier sync logic
-│   │   └── NetworkPortManager.java  ← Semaphore port management
-│   ├── entities/
-│   │   └── VirtualMachine.java      ← VM execution logic
-│   ├── utils/
-│   │   └── Logger.java              ← Console logging
-│   └── ui/
-│       └── CloudKernelGUI.java      ← NEW: Complete GUI (884 lines)
-├── bin/
-│   └── [compiled .class files]
-├── doc/
-├── GUI_IMPLEMENTATION.md            ← Technical docs
-├── GUI_QUICKSTART.md                ← User guide
-├── IMPLEMENTATION_SUMMARY.md        ← Summary of changes
-└── README.md                        ← Updated with GUI info
-```
+CloudKernel models a cloud-hypervisor execution cycle with Java concurrency primitives while exposing runtime behavior through a real-time Swing dashboard.
 
-## 📊 GUI Class Hierarchy
+## Layers
 
-```
-                     JFrame
-                       │
-                CloudKernelGUI
-              ┌─────────────┬─────────────┬──────────────┬────────────┐
-              │             │             │              │            │
-           BootPanel     VMPanel    NetworkPortPanel   CyclicBarrierPanel
-           (JPanel)      (JPanel)    (JPanel)          (JPanel)
-              │             │             │              │
-              │          VMCard      PortIndicator       │
-              │       (inner class) (inner class)        │
-              │             │             │              │
-         BootIndicator      │             │              │
-        (inner class)       │             │              │
-              │             │             │              │
-         [renders UI]   [renders UI]  [renders UI]   [renders UI]
-```
+- Entry: Main.java
+- Configuration: config.ConfigLoader
+- Concurrency Core: core.BootManager, core.ClockSynchronizer
+- Runtime Entities: entities.VirtualMachine, entities.ResourceManager, entities.VMState, entities.VMPriority, entities.VMStats
+- Observability: utils.GUILogger, utils.StatsCollector
+- UI: ui.CloudKernelGUI and component panels
+- Shutdown: shutdown.ShutdownManager
 
-## 🔄 Execution Flow
+## Concurrency Contracts
 
-### Sequence Diagram: Simulation Startup
+### BootManager
 
-```
-User                GUI              Boot Phase          VM Phase
- │                   │                   │                  │
- ├──Click Boot───────>│                   │                  │
- │                   │                   │                  │
- │                   ├──Disable Controls─┤                  │
- │                   │                   │                  │
- │                   ├──SwingWorker───────┼──┬──────────────┤
- │                   │                   │  │               │
- │                   │             BootManager              │
- │                   │              .initDisk()             │
- │                   │                   │ (1500ms)         │
- │                   │                   │ countDown()      │
- │                   │             BootManager              │
- │                   │              .initRAM()             │
- │                   │                   │ (1000ms)         │
- │                   │                   │ countDown()      │
- │                   │                   │                  │
- │                   │<──Boot Complete───┤                  │
- │                   │                   │                  │
- │                   ├─Enable Boot Indicators──┤            │
- │                   │                         │            │
- │                   │      Spawn VM Threads───┼────────────>│
- │                   │                         │     (Per VM)│
- │                   │                         │      Work   │
- │                   │                         │   Network   │
- │                   │                         │   Barrier   │
- │                   │                         │      ...    │
- │                   │                         │            │
- │                   │<────VM Completion───────┼────────────┤
- │                   │                         │            │
- │                   ├─Enable Controls─────────┤            │
- │                   │                         │            │
- └─(can reset)───────┤                         │            │
-```
+- Uses CountDownLatch(4).
+- Boots disk, RAM, network stack, and CPU scheduler asynchronously.
+- Exposes latch for visual countdown.
 
-## 🧵 Thread Model
+### ClockSynchronizer
 
-```
-Main Thread (EDT)
-├─ GUI Components
-├─ Event Listeners
-└─ SwingUtilities callbacks
+- Uses CyclicBarrier(vmCount).
+- Increments global cycle in barrier action.
+- Records cycle completion in StatsCollector.
 
-SwingWorker Thread (Boot Phase)
-├─ BootManager setup
-└─ Spawns VM threads
+### ResourceManager
 
-VM-1 Thread
-├─ Work: 800ms
-├─ Network: 500ms (Semaphore acquire/release)
-├─ Barrier: await()
-└─ Repeat 2 cycles
+- Uses three fair semaphores:
+  - CPU permits
+  - Memory permits
+  - Network permits
+- Uses timeout-based tryAcquire for deadlock-resistant resource requests.
+- Tracks current holders for UI rendering.
 
-VM-2 Thread
-├─ Work: 1000ms
-├─ Network: 500ms (Semaphore acquire/release)
-├─ Barrier: await()
-└─ Repeat 2 cycles
+### VirtualMachine
 
-VM-3 Thread
-├─ Work: 1200ms
-├─ Network: 500ms (Semaphore acquire/release)
-├─ Barrier: await()
-└─ Repeat 2 cycles
-```
+- Executes configured number of cycles.
+- Transitions through VMState values.
+- Requests CPU, memory, network resources sequentially.
+- Synchronizes on cyclic barrier each cycle.
 
-## 🔐 Concurrency Primitives
+## UI Composition
 
-### CountDownLatch(2) - Boot Phase
-```
-┌─────────────────────────────────────┐
-│ BootManager.awaitBootCompletion()   │
-│                                     │
-│  CountDownLatch latch = new         │
-│    CountDownLatch(2)                │
-│                                     │
-│  Thread 1: Disk Init                │
-│  ├─ sleep(1500ms)                  │
-│  └─ latch.countDown()  ← Count: 2→1│
-│                                     │
-│  Thread 2: RAM Init                 │
-│  ├─ sleep(1000ms)                  │
-│  └─ latch.countDown()  ← Count: 1→0│
-│                                     │
-│  Main Thread:                       │
-│  └─ latch.await()      ← BLOCKED   │
-│     (waits until count reaches 0)   │
-│     (then proceeds to VMs)          │
-└─────────────────────────────────────┘
-```
+CloudKernelGUI builds the dashboard from modular components:
 
-### Semaphore(2, true) - Network Access
-```
-┌──────────────────────────────────────┐
-│ NetworkPortManager                   │
-│                                      │
-│ Semaphore ports = Semaphore(2, true)│
-│                                      │
-│ Available: 2                         │
-│ ├─ Thread VM-1: acquire() → 1       │
-│ │  (holds Port 1)                   │
-│ │                                    │
-│ ├─ Thread VM-2: acquire() → 0       │
-│ │  (holds Port 2)                   │
-│ │                                    │
-│ ├─ Thread VM-3: acquire()  BLOCKED  │
-│ │  (waits for port)                 │
-│ │                                    │
-│ └─ VM-1: release()         → 1      │
-│    (VM-3 unblocked, gets Port 1)    │
-└──────────────────────────────────────┘
-```
+- VMCard
+- ResourceMonitorPanel
+- BarrierPanel
+- LogPanel
+- StatsBar
+- ControlPanel
+- DashboardUpdater
 
-### CyclicBarrier(3) - Cycle Sync
-```
-┌──────────────────────────────────────┐
-│ ClockSynchronizer                    │
-│                                      │
-│ CyclicBarrier barrier =              │
-│   CyclicBarrier(3)                   │
-│                                      │
-│ Waiting: 0/3                         │
-│ ├─ VM-1: await()         → Waiting 1 │
-│ ├─ VM-2: await()         → Waiting 2 │
-│ ├─ VM-3: await()         → Waiting 3 │
-│           ALL HERE! ↓                │
-│ └─ Barrier.reset()                   │
-│    (all 3 released)                  │
-│    cycleNumber++                     │
-│ Waiting: 0/3  (reset for next cycle)│
-└──────────────────────────────────────┘
-```
+DashboardUpdater centralizes UI refresh operations and dispatches thread-crossing updates via SwingUtilities.invokeLater.
 
-## 🎨 Component Layout
+## Data And Events
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  CloudKernel - Hypervisor Simulator                         │
-├─────────────────────────────────────────────────────────────┤
-│ BOOT PHASE - System Resources        [Main Panel]          │
-│ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐                        │
-│ │Disk  │ │ RAM  │ │NetSt │ │CPU   │  ← BootPanel         │
-│ │[OK]  │ │[OK]  │ │[OK]  │ │[OK]  │                        │
-│ └──────┘ └──────┘ └──────┘ └──────┘                        │
-├─────────────────────────────────────────────────────────────┤
-│ VIRTUAL MACHINES        │ NETWORK  │   EVENT LOG           │
-│ ┌────────────────────┐  │ PORTS    │   [00:00:01.234]      │
-│ │ VM-1               │  │ Port 1   │   [BOOT] Disk...      │
-│ │ Status: Running    │  │ FREE     │   [00:00:02.567]      │
-│ │ Cycle: 1/2         │  │ Port 2   │   [VM-1] Online       │
-│ │ ▓▓▓▓▓░░░░░░░░░   │  │ VM-2     │   [00:00:03.890]      │
-│ │ Tasks: 4           │  │          │   [CLOCK] Sync...     │
-│ └────────────────────┘  ├──────────┤   [00:00:04.123]      │
-│ ┌────────────────────┐  │ BARRIER  │   [VM-3] Waiting      │
-│ │ VM-2               │  │ Cycle #1 │                       │
-│ │ Status: Booting    │  │ VM-1 ●   │   ← LogPanel         │
-│ │ Cycle: 0/2         │  │ VM-2 ○   │                       │
-│ │ ░░░░░░░░░░░░░░░   │  │ VM-3 ●   │                       │
-│ │ Tasks: 0           │  └──────────┘                        │
-│ └────────────────────┘                                      │
-│ ┌────────────────────┐                                      │
-│ │ VM-3               │                                      │
-│ │ Status: Waiting    │                                      │
-│ │ Cycle: 0/2         │                                      │
-│ │ ░░░░░░░░░░░░░░░   │                                      │
-│ │ Tasks: 0           │                                      │
-│ └────────────────────┘                                      │
-├─────────────────────────────────────────────────────────────┤
-│ CONTROLS                                                    │
-│ [Boot System] [Reset] Simulation Speed: ●─── 1.5x          │
-└─────────────────────────────────────────────────────────────┘
-```
+- GUILogger writes every event to terminal and broadcasts to GUI listeners.
+- CloudKernelGUI parses selected log patterns to drive visual state changes.
+- StatsCollector aggregates per-VM and system-wide counters for the stats bar and summary output.
 
-## 📈 Data Flow
+## Runtime Flow
 
-```
-User Input (Button/Slider)
-    ↓
-    ├─→ ActionListener / ChangeListener
-    ├─→ ControlPanel
-    ├─→ CloudKernelGUI method
-    ├─→ SimulationState update
-    ├─→ Background VM Thread
-    │
-VM Thread (runs independently)
-    ├─→ Calls SimulationState methods
-    ├─→ (CountDownLatch.countDown(), etc.)
-    ├─→ Calls updateXX() methods
-    │
-updateXX() methods
-    ├─→ SwingUtilities.invokeLater()
-    ├─→ EDT executes UI update
-    ├─→ JPanel.repaint()
-    │
-Rendering
-    ├─→ paintComponent(Graphics g)
-    ├─→ Graphics2D drawing
-    └─→ UI reflects latest state
-```
+1. Main launches CloudKernelGUI on the Swing event dispatch thread.
+2. GUI initializes managers and registers listeners.
+3. User starts simulation through ControlPanel.
+4. BootManager performs subsystem initialization.
+5. VirtualMachine threads execute cycles with resource access and barrier sync.
+6. DashboardUpdater continuously refreshes resources, VM cards, barrier state, and stats.
+7. ShutdownManager prints graceful summary on termination.
 
-## 🔌 Integration Points
-
-### Original Code → GUI
-```
-BootManager
-    ↓
-    ├─ bootLatch.countDown()
-    │   └─ (tracked by SimulationState.bootLatch)
-    │       └─ updateBootIndicators() triggered
-    │
-ClockSynchronizer
-    ├─ barrier.await()
-    │   └─ (tracked by SimulationState.barrier)
-    │       └─ updateBarrierWaiting() triggered
-    │
-NetworkPortManager
-    ├─ semaphore.acquire/release()
-    │   └─ (tracked by SimulationState.networkSemaphore)
-    │       └─ updateNetworkPort() triggered
-    │
-VirtualMachine
-    ├─ status changes
-    │   └─ updateVMStatus() triggered
-    ├─ cycle progress
-    │   └─ updateVMCycle() triggered
-```
-
-## 🎯 Event Sequence Example: Cycle 1
-
-```
-Time    Event                    Component              UI Update
-────    ─────                    ─────────              ──────────
-0:00    Boot System clicked      ControlPanel.onClick   Controls disabled
-0:00    SwingWorker spawned      CloudKernelGUI         (background thread)
-0:00    Disk init start          BootManager            [YELLOW]
-0:01.5  Disk init done           BootManager            [GREEN]
-0:00    RAM init start           BootManager            [YELLOW]
-0:01.0  RAM init done            BootManager            [GREEN]
-0:02.5  All subsystems ready     CloudKernelGUI         BootPanel all green
-0:02.5  VM threads spawned       CloudKernelGUI         VMPanel status updates
-0:02.5  VM-1 work start          VirtualMachine         VM-1 status: Running
-0:02.6  VM-2 work start          VirtualMachine         VM-2 status: Running
-0:02.7  VM-3 work start          VirtualMachine         VM-3 status: Running
-0:03.3  VM-1 work done           VirtualMachine         VM-1 status: Wait Network
-0:03.3  VM-1 acquire port        NetworkPortManager     Port 1 lights up [VM-1]
-0:03.6  VM-2 work done           VirtualMachine         VM-2 status: Wait Network
-0:03.6  VM-2 acquire port        NetworkPortManager     Port 2 lights up [VM-2]
-0:03.8  VM-1 release port        NetworkPortManager     Port 1 goes FREE
-0:03.8  VM-1 at barrier          ClockSynchronizer      VM-1: BARRIER WAIT
-0:04.1  VM-2 release port        NetworkPortManager     Port 2 goes FREE
-0:04.1  VM-2 at barrier          ClockSynchronizer      VM-2: BARRIER WAIT
-0:04.9  VM-3 work done           VirtualMachine         VM-3 status: Wait Network
-0:04.9  VM-3 acquire port        NetworkPortManager     Port 1 lights up [VM-3]
-0:05.4  VM-3 release port        NetworkPortManager     Port 1 goes FREE
-0:05.4  VM-3 at barrier          ClockSynchronizer      VM-3: BARRIER WAIT
-0:05.4  All at barrier           CyclicBarrier          All VMs released
-                                                        cycleNumber++
-                                 CloudKernelGUI         LogPanel: Clock Tick
-                                 VMPanel                All status: Running
-0:05.4  Cycle 2 begins           VirtualMachine         (process repeats)
-...
-```
-
-## 💾 Memory & Resource Usage
-
-```
-Component              Instances   Approx Size
-─────────              ─────────   ───────────
-CloudKernelGUI         1           5 MB
-BootPanel              1           200 KB
-BootIndicator          4           50 KB each
-VMPanel                1           300 KB
-VMCard                 3           100 KB each
-NetworkPortPanel       1           150 KB
-PortIndicator          2           50 KB each
-CyclicBarrierPanel     1           100 KB
-LogPanel               1           500 KB (grows with logs)
-ControlPanel           1           200 KB
-SimulationState        1           50 KB
-
-Total (estimated)                  ~10-15 MB
-With VM thread stacks              ~50 MB (including heap)
-```
-
-## 🔍 Key Design Patterns Used
-
-### 1. **MVC Pattern**
-- **Model**: SimulationState (data)
-- **View**: Panel classes (display)
-- **Controller**: ControlPanel (user input)
-
-### 2. **Observer Pattern**
-- Event listeners for button clicks
-- SwingUtilities callbacks for UI updates
-
-### 3. **Worker Pattern**
-- SwingWorker for background simulation
-- Keeps EDT responsive
-
-### 4. **Composition Pattern**
-- CloudKernelGUI composed of multiple panels
-- Each panel handles its own rendering
-
-### 5. **Template Method Pattern**
-- Abstract JPanel with paintComponent()
-- Each subclass provides specific implementation
-
-## ✅ Quality Metrics
-
-| Metric | Value |
-|--------|-------|
-| Total Lines of Code | 884 |
-| Classes | 13 |
-| Methods | ~40 |
-| Comments | ~100 lines |
-| Thread-Safe | Yes ✓ |
-| Memory Efficient | Yes ✓ |
-| Responsive UI | Yes ✓ |
-| Exception Handling | Yes ✓ |
-
----
-
-**Implementation Complete** ✨
-Last Updated: March 2026
+<img src="img/screen.png">

@@ -4,17 +4,22 @@ import utils.GUILogger;
 import utils.StatsCollector;
 
 /**
- * Handles graceful shutdown on Ctrl+C (SIGINT).
- * Prints partial statistics if interrupted during execution.
+ * Registers a JVM shutdown hook to print a graceful summary.
  */
 public class ShutdownManager {
     private static StatsCollector statsCollector;
 
+    /**
+     * Creates and registers the shutdown hook.
+     *
+     * @param stats stats collector used for summary output
+     */
     public ShutdownManager(StatsCollector stats) {
         ShutdownManager.statsCollector = stats;
         setupShutdownHook();
     }
 
+    /** Registers the shutdown hook with the runtime. */
     private void setupShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println();
@@ -26,7 +31,7 @@ public class ShutdownManager {
             }
 
             System.out.println();
-            System.out.println(GUILogger.GREEN + "✓ CloudKernel shut down gracefully." + GUILogger.RESET);
+            System.out.println(GUILogger.GREEN + "CloudKernel shut down gracefully." + GUILogger.RESET);
             System.out.println();
         }));
     }

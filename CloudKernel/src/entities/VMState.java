@@ -1,8 +1,7 @@
 package entities;
 
 /**
- * Represents the current state of a Virtual Machine.
- * VMs transition through these states during execution.
+ * Defines VM lifecycle states used by the simulator and dashboard.
  */
 public enum VMState {
     BOOTING("BOOTING", "\u001B[33m"), // Yellow
@@ -23,10 +22,16 @@ public enum VMState {
         this.color = color;
     }
 
+    /**
+     * @return display label for the state
+     */
     public String getLabel() {
         return label;
     }
 
+    /**
+     * @return ANSI color code used for console rendering
+     */
     public String getColor() {
         return color;
     }

@@ -6,8 +6,7 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
 /**
- * Keeps all VM threads synchronized at each cycle using CyclicBarrier.
- * Triggers clock tick when all VMs reach the barrier.
+ * Synchronizes VM cycle boundaries through a cyclic barrier.
  */
 public class ClockSynchronizer {
 
@@ -16,6 +15,13 @@ public class ClockSynchronizer {
     private final StatsCollector stats;
     private int cycleCount = 0;
 
+    /**
+     * Creates a clock synchronizer.
+     *
+     * @param vmCount number of participating VM threads
+     * @param logger  logger instance
+     * @param stats   statistics collector
+     */
     public ClockSynchronizer(int vmCount, GUILogger logger, StatsCollector stats) {
         this.logger = logger;
         this.stats = stats;
@@ -30,15 +36,28 @@ public class ClockSynchronizer {
         this.barrier = new CyclicBarrier(vmCount, clockTick);
     }
 
+    /**
+     * Waits for all VMs to arrive at the barrier and synchronizes the cycle.
+     *
+     * @param vmName VM identifier for log messages
+     * @throws InterruptedException   if interrupted while waiting
+     * @throws BrokenBarrierException if the barrier is broken
+     */
     public void sync(String vmName) throws InterruptedException, BrokenBarrierException {
         logger.log(vmName, "Work unit done. Waiting at clock barrier...", "BARRIER");
         barrier.await();
     }
 
+    /**
+     * @return underlying cyclic barrier
+     */
     public CyclicBarrier getBarrier() {
         return barrier;
     }
 
+    /**
+     * @return completed cycle count
+     */
     public int getCycleCount() {
         return cycleCount;
     }
