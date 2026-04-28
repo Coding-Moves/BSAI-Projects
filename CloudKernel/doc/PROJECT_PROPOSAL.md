@@ -61,3 +61,8 @@ The simulator uses config.properties for:
 - Export runtime metrics to CSV or JSON.
 - Add configurable VM scheduling policies.
 - Add persistence and replay mode for event timelines.
+
+
+
+
+ 

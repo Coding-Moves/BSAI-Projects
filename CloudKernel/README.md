@@ -2,6 +2,26 @@
 
 CloudKernel is a Java concurrency simulator with a professional Swing dashboard that visualizes hypervisor-like VM scheduling, shared resource contention, and synchronization.
 
+## 📋 Project Information
+
+| Field | Details |
+|-------|---------|
+| **Subject** | Operating Systems |
+| **Semester** | 4th Semester — BSAI 2k24 |
+| **Institute** | NFC Institute of Engineering & Technology, Multan |
+| **Department** | Artificial Intelligence |
+| **Submitted To** | Mam Amara Nadeem — [ammara.visiting@nfciet.edu.pk](mailto:ammara.visiting@nfciet.edu.pk) |
+| **Submission Date** | March 03, 2026 |
+
+---
+
+## 👥 Team Members
+
+| Name | Roll Number | Email |
+|------|-------------|-------|
+| Moavia Amir | 2k24_BSAI_72 | [2k24bsai72@undergrad.nfciet.edu.pk](mailto:2k24bsai72@undergrad.nfciet.edu.pk) |
+| Ali Raza | 2k24_BSAI_44 | [2k24bsai44@undergrad.nfciet.edu.pk](mailto:2k24bsai44@undergrad.nfciet.edu.pk) |
+| Muhammad Arslan Nasir | 2k24_BSAI_26 | [2k24bsai26@undergrad.nfciet.edu.pk](mailto:2k24bsai26@undergrad.nfciet.edu.pk) |
 ## Highlights
 
 - Dark-theme dashboard: Cloud hypervisor monitor layout.
@@ -101,3 +121,5 @@ java -cp "bin;." Main
 - All UI updates triggered by worker threads are dispatched through SwingUtilities.invokeLater.
 - Main.java contains only the GUI entry point.
 - Legacy duplicate docs and unused legacy classes were removed to keep one canonical implementation path.
+
+
