@@ -12,6 +12,7 @@ CloudKernel is a Java concurrency simulator with a professional Swing dashboard 
 - Live stats for cycles, operations, contentions, timeouts, and uptime.
 - Configurable behavior through config.properties.
 
+<img src ="img/banner.png">
 ## Final Package Structure
 
 ```text
