@@ -19,7 +19,7 @@ CloudKernel is a Java concurrency simulator with a professional Swing dashboard 
 
 | Name | Roll Number | Email |
 |------|-------------|-------|
-| Moavia Amir | 2k24_BSAI_72 | [2k24bsai72@undergrad.nfciet.edu.pk](mailto:2k24bsai72@undergrad.nfciet.edu.pk) |
+| Muawiya Amir | 2k24_BSAI_72 | [2k24bsai72@undergrad.nfciet.edu.pk](mailto:2k24bsai72@undergrad.nfciet.edu.pk) |
 | Ali Raza | 2k24_BSAI_44 | [2k24bsai44@undergrad.nfciet.edu.pk](mailto:2k24bsai44@undergrad.nfciet.edu.pk) |
 | Muhammad Arslan Nasir | 2k24_BSAI_26 | [2k24bsai26@undergrad.nfciet.edu.pk](mailto:2k24bsai26@undergrad.nfciet.edu.pk) |
 ## Highlights
@@ -68,6 +68,10 @@ CloudKernel/
   ARCHITECTURE.md
   doc/
     PROJECT_PROPOSAL.md
+    PROJECT_Report.md
+    Project_presentation.ppt
+
+
 ```
 
 ## GUI Overview
