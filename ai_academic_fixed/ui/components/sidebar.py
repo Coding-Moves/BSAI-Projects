@@ -41,7 +41,7 @@ class Sidebar(QWidget):
         logo_row = QHBoxLayout()
         icon_lbl = QLabel("🎓")
         icon_lbl.setFont(QFont("Segoe UI Emoji", 22))
-        logo_text = QLabel("EduAI")
+        logo_text = QLabel("AcadAI")
         logo_text.setStyleSheet("font-size:18px;font-weight:700;color:#4F6EF7;letter-spacing:-0.5px;")
         logo_row.addWidget(icon_lbl)
         logo_row.addWidget(logo_text)
@@ -95,7 +95,7 @@ class Sidebar(QWidget):
         btn.setStyleSheet("""
             QPushButton {
                 background:transparent; border:none; border-radius:8px;
-                padding:0 12px; text-align:left; font-size:13px; color:#6B7280;
+                padding:0 12px; text-align:left; font-size:14px; color:#6B7280;
             }
             QPushButton:hover { background:#F3F4F6; color:#111827; }
         """)
@@ -113,7 +113,7 @@ class Sidebar(QWidget):
                 btn.setStyleSheet("""
                     QPushButton {
                         background:#EEF1FF; border:none; border-radius:8px;
-                        padding:0 12px; text-align:left; font-size:13px;
+                        padding:0 12px; text-align:left; font-size:14px;
                         font-weight:700; color:#4F6EF7;
                     }
                 """)

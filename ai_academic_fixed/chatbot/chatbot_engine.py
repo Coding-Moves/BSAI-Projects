@@ -8,7 +8,7 @@ from database.db_manager import DatabaseManager
 
 class Chatbot:
     """
-    Academic AI Chatbot.
+    AcadAI Chatbot.
     All responses are dynamically built from actual student stats in the DB.
     No hardcoded answers — everything comes from real data.
     """
@@ -65,7 +65,7 @@ class Chatbot:
     # ── Response handlers — all use real DB data ──────────────────────────────
     def _resp_greeting(self):
         s = self._stats()
-        return (f"Hello! I am your EduAI Academic Assistant.\n\n"
+        return (f"Hello! I am your AcadAI Academic Assistant.\n\n"
                 f"Currently tracking: {s.get('total',0)} students\n"
                 f"Class average GPA : {s.get('avg_gpa',0):.2f}\n"
                 f"Average attendance: {s.get('avg_att',0):.1f}%\n\n"
@@ -228,7 +228,7 @@ class Chatbot:
         return "You are welcome! I am always here to help you make data-driven academic decisions.\nAsk me anything else about GPA, careers, or study planning!"
 
     def _resp_help(self):
-        return ("EduAI Assistant - What I can do:\n\n"
+        return ("AcadAI Assistant - What I can do:\n\n"
                 "GPA & Performance:\n"
                 "  'How to improve GPA?'\n"
                 "  'What is the average GPA?'\n"

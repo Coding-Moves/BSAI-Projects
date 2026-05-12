@@ -37,37 +37,32 @@ LAST_NAMES = [
     "Bajwa", "Cheema", "Awan", "Nawaz", "Riaz", "Zafar", "Baig", "Ansari",
 ]
 
+# ── Interests and Skills ─────────────────────────────────────────────────────
 INTERESTS = [
-    "Machine Learning", "Deep Learning", "Computer Vision", "NLP",
-    "Cybersecurity", "Data Science", "Cloud Computing", "Web Development",
-    "Robotics", "IoT", "Blockchain", "Software Engineering",
+    "AI", "Data Science", "Web Development", "Mobile Apps", "Cybersecurity",
+    "Cloud Computing", "IoT", "Game Development", "Robotics", "UI/UX"
 ]
 
 SKILLS_POOL = [
-    "Python", "C++", "Java", "SQL", "TensorFlow", "PyTorch",
-    "scikit-learn", "Pandas", "NumPy", "Linux", "Docker",
-    "Git", "React", "Flask", "OpenCV", "Matlab",
+    "Python", "Java", "C++", "SQL", "HTML", "CSS", "JavaScript", "React",
+    "Node.js", "Django", "Flask", "TensorFlow", "PyTorch", "Keras", "Pandas",
+    "NumPy", "Matplotlib", "Scikit-learn", "AWS", "Azure", "Firebase",
+    "Linux", "Git", "Docker", "Kubernetes", "Figma", "Photoshop"
 ]
-
-
-# ── GPA calculation formula ──────────────────────────────────────────────────
+# ── GPA Calculation ─────────────────────────────────────────────────────────
 def calculate_gpa(attendance, quiz, assignment, midterm, study_hours):
-
-    score = (
-        (attendance / 100) * 0.20 +
-        (quiz       / 100) * 0.20 +
-        (assignment / 100) * 0.20 +
-        (midterm    / 100) * 0.30 +
-        min(study_hours / 6, 1.0) * 0.10
+    # Model-learnable, noisy GPA formula
+    import numpy as np
+    raw = (
+        0.015 * attendance +
+        0.018 * quiz +
+        0.016 * assignment +
+        0.022 * midterm +
+        0.08  * study_hours +
+        np.random.normal(0, 0.25)
     )
+    return round(float(np.clip(raw, 0.0, 4.0)), 2)
 
-    gpa = score * 4.0
-    gpa += random.uniform(-0.08, 0.08)
-
-    return round(max(0.0, min(4.0, gpa)), 2)
-
-
-# ── Student profile types ─────────────────────────────────────────────────────
 def make_student_profile(profile_type):
 
     if profile_type == "strong":

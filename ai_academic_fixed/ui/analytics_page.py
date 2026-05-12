@@ -51,7 +51,7 @@ class AnalyticsPage(QWidget):
         def make_spin(label, min_v, max_v, dec, default):
             col = QVBoxLayout()
             lbl = QLabel(label)
-            lbl.setStyleSheet("font-size:11px;color:#9CA3AF;font-weight:600;letter-spacing:0.3px;")
+            lbl.setStyleSheet("font-size:11px;color:#9CA3AF;font-weight:500;letter-spacing:0.3px;")
             sp = QDoubleSpinBox()
             sp.setRange(min_v, max_v)
             sp.setDecimals(dec)
@@ -79,7 +79,7 @@ class AnalyticsPage(QWidget):
         self.predict_btn.setCursor(Qt.PointingHandCursor)
         self.predict_btn.setStyleSheet("""
             QPushButton { background:#4F6EF7;color:white;border:none;border-radius:8px;
-                          padding:0 28px;font-size:13px;font-weight:700; }
+                          padding:0 28px;min-height:34px;font-size:13px;font-weight:500; }
             QPushButton:hover { background:#3B5BDB; }
         """)
         self.predict_btn.clicked.connect(self._run_prediction)
@@ -153,7 +153,7 @@ class AnalyticsPage(QWidget):
             n = QLabel(s['name'])
             n.setStyleSheet("font-size:13px;font-weight:600;color:#111827;")
             g = QLabel(f"GPA: {s['gpa']:.2f}")
-            g.setStyleSheet("font-size:12px;color:#EF4444;font-weight:700;")
+            g.setStyleSheet("font-size:13px;color:#EF4444;font-weight:500;")
             row.addWidget(n, 1)
             row.addWidget(g)
             self.atrisk_body.addLayout(row)
@@ -181,7 +181,7 @@ class AnalyticsPage(QWidget):
             v = QLabel(str(value))
             v.setStyleSheet(f"font-size:22px;font-weight:800;color:{color};")
             lb = QLabel(label)
-            lb.setStyleSheet("font-size:11px;color:#6B7280;font-weight:600;")
+            lb.setStyleSheet("font-size:13px;color:#6B7280;font-weight:400;")
             l.addWidget(v)
             l.addWidget(lb)
             return w

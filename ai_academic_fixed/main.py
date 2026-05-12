@@ -1,4 +1,4 @@
-# main.py — Entry point for EduAI Analytics Platform
+# main.py — Entry point for AcadAI Analytics Platform
 
 import sys
 import os
@@ -28,7 +28,7 @@ ensure_model()
 from ui.main_window import MainWindow
 
 app = QApplication(sys.argv)
-app.setApplicationName("EduAI Analytics")
+app.setApplicationName("AcadAI Analytics")
 
 # High DPI support
 try:
@@ -43,7 +43,7 @@ splash_pix.fill(QColor("#FFFFFF"))
 painter = QPainter(splash_pix)
 painter.setFont(QFont("Segoe UI", 28, QFont.Bold))
 painter.setPen(QColor("#4F6EF7"))
-painter.drawText(splash_pix.rect(), Qt.AlignCenter, "🎓  EduAI Analytics")
+painter.drawText(splash_pix.rect(), Qt.AlignCenter, "🎓  AcadAI Analytics")
 painter.setFont(QFont("Segoe UI", 12))
 painter.setPen(QColor("#9CA3AF"))
 painter.drawText(0, 200, 480, 40, Qt.AlignCenter, "AI Academic Performance Platform  •  BS AI Exhibition")

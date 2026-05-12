@@ -1,6 +1,7 @@
 # analytics/analytics_engine.py
 import statistics
 from database.db_manager import DatabaseManager
+from config import MAX_GPA_CHART_STUDENTS
 
 class AnalyticsEngine:
     def __init__(self, db: DatabaseManager):
@@ -11,6 +12,9 @@ class AnalyticsEngine:
 
     def get_gpa_chart_data(self):
         students = self.db.get_all_students()
+        # Limit number of students shown in the GPA chart to avoid visual saturation
+        max_n = MAX_GPA_CHART_STUDENTS if MAX_GPA_CHART_STUDENTS and MAX_GPA_CHART_STUDENTS > 0 else len(students)
+        students = students[:max_n]
         names = [s['name'].split()[0] for s in students]
         gpas = [s['gpa'] for s in students]
         return names, gpas

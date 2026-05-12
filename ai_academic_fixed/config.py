@@ -1,11 +1,14 @@
 # config.py — Central configuration for AI Academic System
 
-APP_NAME = "EduAI Analytics"
+APP_NAME = "AcadAI Analytics"
 APP_VERSION = "2.0"
 DB_PATH = "database/academic.db"
 MODEL_PATH = "models/gpa_model.pkl"
 DATASET_PATH = "datasets/student_data.csv"
 EXPORT_DIR = "exports/"
+
+# Maximum number of students to display in the GPA bar chart
+MAX_GPA_CHART_STUDENTS = 30
 
 # ── Color Palette (Light Professional SaaS) ──────────────────────────────────
 COLORS = {

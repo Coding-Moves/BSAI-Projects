@@ -39,9 +39,9 @@ class TopBar(QWidget):
         layout.setSpacing(14)
 
         self.title_lbl = QLabel("Dashboard")
-        self.title_lbl.setStyleSheet("font-size:18px;font-weight:700;color:#111827;")
+        self.title_lbl.setStyleSheet("font-size:18px;font-weight:600;color:#111827;")
         self.sub_lbl   = QLabel("Overview of all academic metrics")
-        self.sub_lbl.setStyleSheet("font-size:12px;color:#9CA3AF;")
+        self.sub_lbl.setStyleSheet("font-size:13px;color:#9CA3AF;line-height:1.5;")
 
         title_col = QVBoxLayout()
         title_col.setSpacing(0)
@@ -66,7 +66,7 @@ class TopBar(QWidget):
         avatar = QLabel("🎓")
         avatar.setFont(QFont("Segoe UI Emoji", 14))
         name = QLabel("BS AI Student")
-        name.setStyleSheet("font-size:12px;font-weight:600;color:#4F6EF7;")
+        name.setStyleSheet("font-size:13px;font-weight:500;color:#4F6EF7;")
         ucl.addWidget(avatar)
         ucl.addWidget(name)
         layout.addWidget(user_chip)
@@ -80,7 +80,7 @@ class TopBar(QWidget):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("EduAI Analytics Platform")
+        self.setWindowTitle("AcadAI Analytics Platform")
         self.resize(1340, 840)
         self.setMinimumSize(1100, 700)
         self.setStyleSheet(GLOBAL_STYLE)

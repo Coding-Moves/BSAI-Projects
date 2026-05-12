@@ -56,8 +56,8 @@ class StatCard(QWidget):
 
         # Value
         val_lbl = QLabel(str(value))
-        val_lbl.setStyleSheet(f"font-size:26px;font-weight:800;color:{accent};"
-                               "letter-spacing:-0.5px;")
+        val_lbl.setStyleSheet(f"font-size:22px;font-weight:800;color:{accent};"
+                       "letter-spacing:-0.5px;")
         layout.addWidget(val_lbl)
 
         # Label

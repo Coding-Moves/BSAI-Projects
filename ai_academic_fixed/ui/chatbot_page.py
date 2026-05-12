@@ -88,16 +88,16 @@ class ChatbotPage(QWidget):
         bot_icon.setFont(QFont("Segoe UI Emoji", 18))
         title_col = QVBoxLayout()
         title_col.setSpacing(0)
-        bot_name = QLabel("EduAI Assistant")
-        bot_name.setStyleSheet("font-size:14px;font-weight:700;color:#111827;")
+        bot_name = QLabel("AcadAI Assistant")
+        bot_name.setStyleSheet("font-size:15px;font-weight:600;color:#111827;")
         bot_status = QLabel("● Online  •  Academic Intelligence")
-        bot_status.setStyleSheet("font-size:11px;color:#10B981;")
+        bot_status.setStyleSheet("font-size:15px;color:#10B981;")
         title_col.addWidget(bot_name)
         title_col.addWidget(bot_status)
         clear_btn = QPushButton("Clear Chat")
         clear_btn.setCursor(Qt.PointingHandCursor)
         clear_btn.setStyleSheet("background:#F3F4F6;color:#6B7280;border:none;border-radius:6px;"
-                                 "padding:6px 14px;font-size:11px;font-weight:600;")
+                                 "padding:6px 14px;min-height:32px;font-size:15px;font-weight:500;")
         clear_btn.clicked.connect(self._clear_chat)
         hl.addWidget(bot_icon)
         hl.addLayout(title_col)
@@ -154,7 +154,7 @@ class ChatbotPage(QWidget):
 
         # ── Quick prompts ─────────────────────────────
         quick_lbl = QLabel("Quick questions:")
-        quick_lbl.setStyleSheet("font-size:12px;color:#9CA3AF;margin-top:12px;")
+        quick_lbl.setStyleSheet("font-size:15px;color:#9CA3AF;margin-top:12px;font-weight:500;")
         layout.addWidget(quick_lbl)
 
         prompts_row = QHBoxLayout()
@@ -171,7 +171,7 @@ class ChatbotPage(QWidget):
             btn.setCursor(Qt.PointingHandCursor)
             btn.setStyleSheet("""
                 QPushButton { background:#FFFFFF; color:#4F6EF7; border:1px solid #C7D2FE;
-                    border-radius:20px; padding:6px 14px; font-size:11px; font-weight:600; }
+                    border-radius:20px; padding:6px 14px; min-height:32px; font-size:15px; font-weight:500; }
                 QPushButton:hover { background:#EEF1FF; }
             """)
             btn.clicked.connect(lambda _, t=p: self._quick_send(t))
@@ -180,7 +180,7 @@ class ChatbotPage(QWidget):
         layout.addLayout(prompts_row)
 
     def _send_welcome(self):
-        welcome = ("👋  Hello! I'm your EduAI Academic Assistant.\n\n"
+        welcome = ("👋  Hello! I'm your AcadAI Academic Assistant.\n\n"
                    "I can help you with:\n"
                    "• 📈 GPA improvement strategies\n"
                    "• 🎯 Career path recommendations\n"
