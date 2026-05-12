@@ -1,0 +1,213 @@
+
+<style>
+  body{
+    background-color: rgba(43, 37, 39, 0);
+  }
+  body { margin: 0; padding: 16px 20px 24px; }
+  .header { margin-bottom: 18px; }
+  .header h1 { font-size: 20px; font-weight: 800; color: var(--text-primary, #111); margin: 0 0 4px; letter-spacing: -0.3px; }
+  .header p  { font-size: 12px; color: var(--text-secondary, #666); margin: 0; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 600; background: #0f766e22; color: #0f766e; border: 1px solid #0f766e55; border-radius: 20px; padding: 2px 9px; margin-left: 8px; vertical-align: middle; }
+  #erd-wrap { width: 100%; overflow-x: auto; }
+  #erd svg  { min-width: 900px; font-family: inherit !important; }
+</style>
+
+<div class="header">
+  <h1>Entity-Relationship Diagram <span class="badge">12 Tables</span></h1>
+  <p>Medical Store Management System (MSMS) </p>
+</div>
+
+<div id="erd-wrap"><div id="erd"></div></div>
+
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: 'inherit',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '12px',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+    primaryColor: dark ? '#1a3a4a' : '#e1f5ee',
+    primaryBorderColor: '#0f766e',
+    primaryTextColor: dark ? '#9FE1CB' : '#04342C',
+    secondaryColor: dark ? '#2a2a3a' : '#ede9fe',
+    secondaryBorderColor: '#7c3aed',
+    secondaryTextColor: dark ? '#c4b5fd' : '#26215C',
+    tertiaryColor: dark ? '#3a2a1a' : '#faeeda',
+    tertiaryBorderColor: '#b45309',
+    tertiaryTextColor: dark ? '#fcd34d' : '#412402',
+    edgeLabelBackground: dark ? '#1e293b' : '#f8fafc',
+    attributeBackgroundColorEven: dark ? '#1a2332' : '#f0f9ff',
+    attributeBackgroundColorOdd: dark ? '#151c2a' : '#ffffff',
+  },
+});
+
+const diagram = `erDiagram
+  categories {
+    int category_id PK
+    varchar category_name UK
+    text description
+  }
+  manufacturers {
+    int manufacturer_id PK
+    varchar name UK
+    varchar country
+    varchar contact_email UK
+    varchar phone
+    text address
+  }
+  suppliers {
+    int supplier_id PK
+    varchar name
+    varchar contact_person
+    varchar phone
+    varchar email
+    text address
+    decimal rating
+    tinyint is_active
+  }
+  medicines {
+    int medicine_id PK
+    varchar name
+    varchar generic_name
+    int category_id FK
+    int manufacturer_id FK
+    enum dosage_form
+    varchar strength
+    decimal unit_price
+    tinyint requires_prescription
+    text description
+    tinyint is_active
+  }
+  stock {
+    int stock_id PK
+    int medicine_id FK
+    int supplier_id FK
+    int quantity
+    int reorder_level
+    varchar batch_number
+    date manufacturing_date
+    date expiry_date
+    timestamp last_restocked
+  }
+  doctors {
+    int doctor_id PK
+    varchar name
+    varchar specialization
+    varchar license_number UK
+    varchar phone
+    varchar hospital
+    tinyint is_active
+  }
+  customers {
+    int customer_id PK
+    varchar name
+    varchar phone UK
+    varchar email
+    date date_of_birth
+    enum gender
+    text address
+    timestamp created_at
+  }
+  employees {
+    int employee_id PK
+    varchar name
+    enum role
+    varchar phone UK
+    varchar email UK
+    decimal salary
+    date hire_date
+    tinyint is_active
+    varchar username UK
+    varchar password_hash
+  }
+  prescriptions {
+    int prescription_id PK
+    int customer_id FK
+    int doctor_id FK
+    date prescription_date
+    date valid_until
+    text notes
+    tinyint is_used
+    timestamp created_at
+  }
+  orders {
+    int order_id PK
+    int customer_id FK
+    int employee_id FK
+    int prescription_id FK
+    timestamp order_date
+    enum status
+    decimal subtotal
+    decimal discount_percent
+    decimal tax_percent
+    decimal total_amount
+    text notes
+  }
+  order_items {
+    int item_id PK
+    int order_id FK
+    int medicine_id FK
+    int quantity
+    decimal unit_price
+    decimal subtotal
+  }
+  payments {
+    int payment_id PK
+    int order_id FK
+    decimal amount_paid
+    enum payment_method
+    enum payment_status
+    varchar transaction_ref
+    timestamp paid_at
+    text notes
+  }
+
+  categories ||--o{ medicines : "classifies"
+  manufacturers ||--o{ medicines : "produces"
+  suppliers ||--o{ stock : "supplies"
+  medicines ||--|| stock : "has stock"
+  doctors ||--o{ prescriptions : "issues"
+  customers ||--o{ prescriptions : "receives"
+  customers ||--o{ orders : "places"
+  employees ||--o{ orders : "processes"
+  prescriptions ||--o| orders : "authorises"
+  orders ||--o{ order_items : "contains"
+  medicines ||--o{ order_items : "included in"
+  orders ||--|| payments : "paid via"
+`;
+
+const { svg } = await mermaid.render('erd-svg', diagram);
+document.getElementById('erd').innerHTML = svg;
+
+await new Promise(r => setTimeout(r, 80));
+
+document.querySelectorAll('#erd svg .node').forEach(node => {
+  const firstPath = node.querySelector('path[d]');
+  if (!firstPath) return;
+  const d = firstPath.getAttribute('d');
+  const nums = d.match(/-?[\d.]+/g)?.map(Number);
+  if (!nums || nums.length < 8) return;
+  const xs = [nums[0], nums[2], nums[4], nums[6]];
+  const ys = [nums[1], nums[3], nums[5], nums[7]];
+  const x = Math.min(...xs), y = Math.min(...ys);
+  const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+  const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  rect.setAttribute('x', x); rect.setAttribute('y', y);
+  rect.setAttribute('width', w); rect.setAttribute('height', h);
+  rect.setAttribute('rx', '8');
+  for (const a of ['fill','stroke','stroke-width','class','style']) {
+    if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+  }
+  firstPath.replaceWith(rect);
+});
+
+document.querySelectorAll('#erd svg .row-rect-odd path, #erd svg .row-rect-even path, #erd svg .row-rect-odd rect, #erd svg .row-rect-even rect').forEach(p => {
+  p.setAttribute('stroke', 'none');
+});
+</script>
