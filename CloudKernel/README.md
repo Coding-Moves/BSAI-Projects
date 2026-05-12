@@ -1,181 +1,129 @@
-# CloudKernel ☁️⚙️
+# CloudKernel
 
-## Overview
+CloudKernel is a Java concurrency simulator with a professional Swing dashboard that visualizes hypervisor-like VM scheduling, shared resource contention, and synchronization.
 
-**CloudKernel** is a small Java-based simulation created for our **Operating Systems Lab**.  
-The purpose of this project is to show how a hypervisor-like system can manage multiple **Virtual Machines (VMs)** while coordinating shared resources.
+## 📋 Project Information
 
-Instead of building a real operating system, this project focuses on demonstrating **important OS concepts** like synchronization, resource sharing, and concurrent execution using Java threads.
-
-The program simulates a system where several virtual machines start after the system boots, run tasks together, and share limited network resources.
-
----
-
-## 🎓 Academic Information
-
-**Course:** Operating Systems Lab  
-**Semester:** 4th Semester  
-
-**Submitted to:**  
-Mam Amara Nadeem  
-
-**Submitted by:**
-
-- **Moavia Amir** (2k24_BSAI_72)  
-- **Ali Raza** (2k24_BSAI_44)  
-- **Muhammad Arslan Nasir** (2k24_BSAI_26)
-
-**Submission Date:**  
-March 03, 2026
+| Field | Details |
+|-------|---------|
+| **Subject** | Operating Systems |
+| **Semester** | 4th Semester — BSAI 2k24 |
+| **Institute** | NFC Institute of Engineering & Technology, Multan |
+| **Department** | Artificial Intelligence |
+| **Submitted To** | Mam Amara Nadeem — [ammara.visiting@nfciet.edu.pk](mailto:ammara.visiting@nfciet.edu.pk) |
+| **Submission Date** | March 03, 2026 |
 
 ---
 
-## 🎯 Project Goals
+## 👥 Team Members
 
-This project was designed to help understand how operating systems manage:
+| Name | Roll Number | Email |
+|------|-------------|-------|
+| Muawiya Amir | 2k24_BSAI_72 | [2k24bsai72@undergrad.nfciet.edu.pk](mailto:2k24bsai72@undergrad.nfciet.edu.pk) |
+| Ali Raza | 2k24_BSAI_44 | [2k24bsai44@undergrad.nfciet.edu.pk](mailto:2k24bsai44@undergrad.nfciet.edu.pk) |
+| Muhammad Arslan Nasir | 2k24_BSAI_26 | [2k24bsai26@undergrad.nfciet.edu.pk](mailto:2k24bsai26@undergrad.nfciet.edu.pk) |
+## Highlights
 
-- System boot coordination  
-- Thread synchronization  
-- Limited resource sharing  
-- Parallel execution of processes  
+- Dark-theme dashboard: Cloud hypervisor monitor layout.
+- Boot orchestration with CountDownLatch.
+- VM cycle synchronization with CyclicBarrier.
+- Shared CPU, memory, and network resources with fair semaphores and timeout handling.
+- Color-coded live logs streamed to terminal and GUI simultaneously.
+- Live stats for cycles, operations, contentions, timeouts, and uptime.
+- Configurable behavior through config.properties.
 
-All these ideas are implemented using **Java concurrency utilities**.
+<img src ="img/banner.png">
+## Final Package Structure
 
----
+```text
+CloudKernel/
+  src/
+    Main.java
+    config/
+      ConfigLoader.java
+    core/
+      BootManager.java
+      ClockSynchronizer.java
+    entities/
+      ResourceManager.java
+      VirtualMachine.java
+      VMPriority.java
+      VMState.java
+      VMStats.java
+    shutdown/
+      ShutdownManager.java
+    ui/
+      BarrierPanel.java
+      CloudKernelGUI.java
+      ControlPanel.java
+      DashboardUpdater.java
+      LogPanel.java
+      ResourceMonitorPanel.java
+      StatsBar.java
+      VMCard.java
+    utils/
+      GUILogger.java
+      StatsCollector.java
+  config.properties
+  ARCHITECTURE.md
+  doc/
+    PROJECT_PROPOSAL.md
+    PROJECT_Report.md
+    Project_presentation.ppt
 
-## ⚙️ Key Concepts Used
-
-### 1. System Boot Coordination
-
-Before any virtual machine starts running, the system must finish its boot process.
-
-We simulate this using **CountDownLatch**.  
-It ensures that resources like **Disk and RAM** are ready before the virtual machines begin execution.
-
----
-
-### 2. VM Cycle Synchronization
-
-Each virtual machine performs its work in cycles.  
-To keep them synchronized, we use **CyclicBarrier**.
-
-This means all VMs must finish a cycle before the next one begins.
-
----
-
-### 3. Limited Network Access
-
-In real systems, hardware resources are limited.  
-In this simulation, only **two VMs can use the network at the same time**.
-
-This is managed using a **Semaphore**, which controls access to the shared network ports.
-
----
-
-## 🧩 Project Structure
-```
-CloudKernel
-│
-├── src
-│ │
-│ ├── Main.java
-│ │
-│ ├── core
-│ │ ├── BootManager.java
-│ │ ├── ClockSynchronizer.java
-│ │ └── NetworkPortManager.java
-│ │
-│ ├── entities
-│ │ └── VirtualMachine.java
-│ │
-│ └── utils
-│ └── Logger.java
-│
-├── doc
-│ └── proposal
-│
-└── README.md
-```
----
-
-## 🏗 System Workflow
-
-The program runs in the following order:
 
 ```
-System Boot
-│
-▼
-BootManager initializes resources
-│
-▼
-Virtual Machines start (Threads)
-│
-▼
-VMs execute cycles together
-│
-▼
-Network access controlled by Semaphore
-│
-▼
-Logs printed to terminal
+
+## GUI Overview
+
+Main window sections:
+
+- Header: title, digital clock, online indicator.
+- Boot panel: resource chips and latch countdown.
+- VM dashboard: one card per VM with state, priority, progress, and resource indicators.
+- Left sidebar: semaphore slot view for CPU, memory, and network.
+- Barrier panel: arrival dots and cycle display.
+- Right sidebar: color-coded live event log.
+- Bottom bars: statistics and controls.
+
+## Core Concurrency Model
+
+- Boot phase: CountDownLatch initialized to four boot tasks.
+- Runtime phase: each VM executes for configured cycles.
+- Resource phase: each VM requests CPU, memory, and network permits with timeout.
+- Synchronization phase: all VMs rendezvous at a CyclicBarrier before the next cycle.
+
+## Configuration
+
+Edit config.properties before running:
+
+- vm.count
+- cycle.count
+- semaphore.cpu.permits
+- semaphore.memory.permits
+- semaphore.network.permits
+- task.duration.min
+- task.duration.max
+- timeout.duration
+- gui.enabled
+- gui.theme
+- gui.font
+- logging.level
+- stats.enabled
+
+## Build And Run
+
+From CloudKernel root:
+
+```powershell
+javac -encoding UTF-8 -d bin (Get-ChildItem -Recurse src -Filter *.java | ForEach-Object { $_.FullName })
+java -cp "bin;." Main
 ```
 
----
+## Notes
 
-## ▶️ How to Run the Project
+- All UI updates triggered by worker threads are dispatched through SwingUtilities.invokeLater.
+- Main.java contains only the GUI entry point.
+- Legacy duplicate docs and unused legacy classes were removed to keep one canonical implementation path.
 
-### 1. Compile the project
 
-```bash
-javac -d out -sourcepath src src/Main.java
-```
-### 2. Run the program
-```bash
-java -cp out Main
-```
-## 🖥 Example Output
-
-When the program runs, you may see output like:
-```
-[BOOT] Disk initialized
-[BOOT] RAM initialized
-[BOOT] System ready
-
-[VM-1] Starting execution
-[VM-2] Starting execution
-[VM-3] Starting execution
-
-[VM-1] Requesting network access
-[VM-2] Requesting network access
-
-[VM-1] Using network port
-[VM-2] Using network port
-
-[VM-3] Waiting for network port
-```
-The Logger class keeps the output organized so it is easier to read.
-
-## 🧠 What We Learned
-
-While building this project, we understood how operating systems handle:
-
-+ **Thread** synchronization
-
-+ **Shared** resource management
-
-+ **Parallel** execution
-
-+ **Process** coordination
-
-These concepts are important for understanding how real operating systems and cloud platforms work.
-
----
-
-## 📌 Conclusion
-
-CloudKernel is a simple educational simulation that demonstrates how a hypervisor-like system can coordinate virtual machines and manage shared resources.
-
-Although it is a simplified model, it provides a clear understanding of synchronization and concurrency in operating systems.
-
----

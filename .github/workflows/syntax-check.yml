@@ -3,7 +3,7 @@ name: Python Syntax Check
 on:
   pull_request:
     branches:
-      - main  # or your default branch
+      - main  #  default branch
 
 jobs:
   syntax-check:
