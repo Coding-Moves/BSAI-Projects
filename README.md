@@ -36,3 +36,7 @@ A GitHub Actions workflow checks Python syntax on every push and pull request.
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## Coding Moves Research
+
+This collection of university projects is featured in [Coding Moves Research](https://codingmoves.netlify.app/research/). Each project has its own scope and maturity; use its folder README for setup and contributor credits.
