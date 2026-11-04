@@ -39,4 +39,4 @@ MIT — see [LICENSE](LICENSE).
 
 ## Coding Moves Academy
 
-This collection of university coursework is featured in [Coding Moves Academy](https://codingmoves.netlify.app/academy/). Each project has its own scope and maturity; use its folder README for setup and contributor credits.
+This collection of university coursework is featured in [Coding Moves Academy](https://codingmoves.com/academy/). Each project has its own scope and maturity; use its folder README for setup and contributor credits.
